@@ -3,9 +3,9 @@
 このリポジトリは数値計算法の試験範囲から、特に重要な以下のアルゴリズムの実装を提供します：
 
 1. ルンゲ・クッタ法による微分方程式の解法
-2. ヤコビ法による固有値・固有ベクトルの計算
-3. べき乗法による最大固有値の計算
-4. ハウスホルダー法・ダブルQR法による固有値の計算
+2. ヘッセンベルグ変換とQR法による固有値の計算
+3. ヤコビ法による固有値・固有ベクトルの計算
+4. べき乗法による最大固有値の計算
 
 > [!WARNING]
 > このソースコードおよび README は、macOS 上で Claude 3.5 Sonnet を用いて制作されたものです。そのため、**Windows での動作は保証されません**。
@@ -67,10 +67,10 @@ git clone https://github.com/ama434/newsourceq4.git
     │   └── ...
     └── newsourceq4/        # このリポジトリ
         ├── Makefile
-        ├── rk-solver.cpp   # ルンゲ・クッタ法
+        ├── rk-test.cpp   # ルンゲ・クッタ法
         ├── jacobi-test.cpp # ヤコビ法
-        ├── power-method.cpp # べき乗法
-        └── dqr-test.cpp    # ハウスホルダー法・ダブルQR法
+        ├── power-method-test.cpp # べき乗法
+        └── eig-test.cpp    # QR法
 ```
 
 ## 使用方法
@@ -83,7 +83,7 @@ cd newsourceq4
 ### 1. ルンゲ・クッタ法
 ```bash
 # コンパイルと実行
-make MAIN_SRC=rk-solver.cpp
+make MAIN_SRC=rk-test.cpp
 ./matrix
 
 # グラフの表示（プログラムの指示に従ってください）
@@ -93,7 +93,7 @@ gnuplot rk_plot.gp  # Unix系の場合
 > [!IMPORTANT]
 > WSL などの環境で gnuplot が正しく動作しないことがあるかもしれません。そのときはがんばってください。
 
-パラメータの変更は `rk-solver.cpp` 内の `params` 名前空間で行えます：
+パラメータの変更は `rk-test.cpp` 内の `params` 名前空間で行えます：
 ```cpp
 namespace params {
     // 微分方程式の係数
@@ -107,23 +107,29 @@ namespace params {
 }
 ```
 
-### 2. ヤコビ法
+### 2. QR法
+
+行列の固有値を求めたいときは、特別な指示がなければこれを使用してください。
+
+```bash
+make MAIN_SRC=eig-test.cpp
+./matrix
+```
+
+### 3. ヤコビ法
 ```bash
 make MAIN_SRC=jacobi-test.cpp
 ./matrix
 ```
 
-### 3. べき乗法
+### 4. べき乗法
 ```bash
 make MAIN_SRC=power-method.cpp
 ./matrix
 ```
 
-### 4. ハウスホルダー法・ダブルQR法
-```bash
-make MAIN_SRC=dqr-test.cpp
-./matrix
-```
+> [!IMPORTANT]
+> ほかにもソースコードがありますが、それらは**書きかけ**ですので正常に動作しません。
 
 ### 参照用の main.cpp の使用
 親ディレクトリの `main.cpp` を使用する場合：
@@ -136,13 +142,11 @@ make
 
 1. **微分方程式を解く場合**：
    - 運動方程式や共振回路の式を手計算で1階の連立微分方程式に変形
-   - 係数を `rk-solver.cpp` の `params` に設定
+   - 係数を `rk-test.cpp` の `params` に設定
    - 実行して結果を確認
 
 2. **固有値問題を解く場合**：
-   - 対称行列の場合は `jacobi-test.cpp` を使用
-   - 最大固有値のみ必要な場合は `power-method.cpp` を使用
-   - それ以外の場合は `dqr-test.cpp` を使用
+   - `eig-test.cpp` を使用
 
 ## トラブルシューティング
 

@@ -1,365 +1,235 @@
-#include <cmath>
-#include <iostream>
+#include "../pch.h"
+#include <complex>
 #include <vector>
-#include <complex> // std::complex を使用する場合
 
 using namespace std;
 
-// 既存のライブラリ (Vector_lib, Matrix_lib) の型定義と関数をここに含める (簡略化のため、必要な部分のみ)
-
-// Vector_lib.h から必要な部分をコピー (簡略化)
-class Vector {
-public:
-    Vector() : size_(3), maxsize_(3), p_(new double[3]), p1_(p_ - 1) { initialize(); } // デフォルトサイズを3に設定
-    explicit Vector(int n) : size_(n), maxsize_(n), p_(new double[n]), p1_(p_ - 1) { initialize(); }
-    Vector(const Vector& X) : size_(X.size_), maxsize_(X.size_), p_(new double[X.size_]), p1_(p_ - 1) {
-        for (int i = 1; i <= size_; ++i) (*this)(i) = X(i);
+// 単位行列の生成
+matrix_ create_identity(int n) {
+    matrix_ I(n);
+    for (int i = 1; i <= n; ++i) {
+        I(i, i) = 1.0;
     }
-    ~Vector() { delete[] p_; }
-
-    int size() const { return size_; }
-    double& operator()(int i) const { return *(p1_ + i); }
-    Vector& operator=(const Vector& X) {
-        if (&X == this) return *this;
-        resize(X.size_);
-        for (int i = 1; i <= size_; ++i) (*this)(i) = X(i);
-        return *this;
-    }
-    Vector operator-(const Vector& X) const {
-        Vector result(size_);
-        for (int i = 1; i <= size_; ++i) result(i) = (*this)(i) - X(i);
-        return result;
-    }
-    Vector operator+(const Vector& X) const {
-        Vector result(size_);
-        for (int i = 1; i <= size_; ++i) result(i) = (*this)(i) + X(i);
-        return result;
-    }
-    double operator*(const Vector& X) const {
-        double sum = 0.0;
-        for (int i = 1; i <= size_; ++i) sum += (*this)(i) * X(i);
-        return sum;
-    }
-    Vector operator*(double c) const {
-        Vector result(size_);
-        for (int i = 1; i <= size_; ++i) result(i) = (*this)(i) * c;
-        return result;
-    }
-    Vector operator/(double c) const {
-        Vector result(size_);
-        for (int i = 1; i <= size_; ++i) result(i) = (*this)(i) / c;
-        return result;
-    }
-    friend ostream& operator<<(ostream& os, const Vector& X); // フレンド関数として宣言
-
-
-    void resize(int n) {
-        if (n > maxsize_) {
-            delete[] p_;
-            maxsize_ = n;
-            p_ = new double[maxsize_];
-            p1_ = p_ - 1;
-        }
-        size_ = n;
-        initialize();
-    }
-
-private:
-    double* p_;
-    double* p1_;
-    int size_;
-    int maxsize_ = 0;
-    void initialize() { for (int i = 1; i <= size_; ++i) (*this)(i) = 0.0; }
-};
-
-ostream& operator<<(ostream& os, const Vector& X) { // 実装を追加
-    for (int i = 1; i <= X.size(); ++i) {
-        os << X(i) << endl;
-    }
-    return os;
+    return I;
 }
 
-
-double norm(const Vector& X) {
-    double w = 0.0;
-    for (int i = 1; i <= X.size(); ++i) w += X(i) * X(i);
-    return sqrt(w);
-}
-
-// Matrix_lib.h から必要な部分をコピー (簡略化)
-class Matrix {
-public:
-    Matrix() : row_(3), col_(3), maxsize_(9), p_(new double[9]), p1_(p_ - 4) { initialize(); } // デフォルトサイズを3x3に設定
-    explicit Matrix(int n) : row_(n), col_(n), maxsize_(n * n), p_(new double[n * n]), p1_(p_ - (n + 1)) { initialize(); }
-    Matrix(int m, int n) : row_(m), col_(n), maxsize_(m * n), p_(new double[m * n]), p1_(p_ - (n + 1)) { initialize(); }
-    Matrix(const Matrix& A) : row_(A.row_), col_(A.col_), maxsize_(A.maxsize_), p_(new double[A.maxsize_]), p1_(p_ - (A.col_ + 1)) {
-        for (int i = 1; i <= row_; ++i) {
-            for (int j = 1; j <= col_; ++j) (*this)(i, j) = A(i, j);
-        }
-    }
-    ~Matrix() { delete[] p_; }
-
-    int row() const { return row_; }
-    int col() const { return col_; }
-    double* operator[](int i) const { return p_ + i * col_; }
-    double& operator()(int i, int j) const { return *(p1_ + i * col_ + j); }
-    Matrix& operator=(const Matrix& A) {
-        if (&A == this) return *this;
-        resize(A.row_, A.col_);
-        for (int i = 1; i <= row_; ++i) {
-            for (int j = 1; j <= col_; ++j) (*this)(i, j) = A(i, j);
-        }
-        return *this;
-    }
-    Matrix operator*(const Matrix& B) const {
-        Matrix result(row_, B.col_);
-        for (int i = 1; i <= row_; ++i) {
-            for (int j = 1; j <= B.col(); ++j) {
-                double sum = 0.0;
-                for (int k = 1; k <= col_; ++k) sum += (*this)(i, k) * B(k, j);
-                result(i, j) = sum;
-            }
-        }
-        return result;
-    }
-    Matrix operator*(double c) const {
-        Matrix result(row_, col_);
-        for (int i = 1; i <= row_; ++i) {
-            for (int j = 1; j <= col_; ++j) result(i, j) = (*this)(i, j) * c;
-        }
-        return result;
-    }
-    Matrix operator+(const Matrix& B) const {
-        Matrix result(row_, col_);
-        for (int i = 1; i <= row_; ++i) {
-            for (int j = 1; j <= col_; ++j) result(i, j) = (*this)(i, j) + B(i, j);
-        }
-        return result;
-    }
-    Matrix operator-(const Matrix& B) const {
-        Matrix result(row_, col_);
-        for (int i = 1; i <= row_; ++i) {
-            for (int j = 1; j <= col_; ++j) result(i, j) = (*this)(i, j) - B(i, j);
-        }
-        return result;
-    }
-    Matrix operator-() const {
-        Matrix result(row_, col_);
-        for (int i = 1; i <= row_; ++i) {
-            for (int j = 1; j <= col_; ++j) result(i, j) = -(*this)(i, j);
-        }
-        return result;
-    }
-
-    static Matrix identity(int n) {
-        Matrix I(n);
-        for (int i = 1; i <= n; ++i) I(i, i) = 1.0;
-        return I;
-    }
-
-    friend ostream& operator<<(ostream& os, const Matrix& A); // フレンド関数として宣言
-
-
-    void resize(int m, int n) {
-        if (m * n > maxsize_) {
-            delete[] p_;
-            maxsize_ = m * n;
-            p_ = new double[maxsize_];
-            p1_ = p_ - (n + 1);
-        }
-        row_ = m;
-        col_ = n;
-        initialize();
-    }
-
-
-private:
-    int row_, col_, maxsize_;
-    double* p_;
-    double* p1_;
-    void initialize() { for (int i = 1; i <= row_; ++i) for (int j = 1; j <= col_; ++j) (*this)(i, j) = 0.0; }
-};
-
-ostream& operator<<(ostream& os, const Matrix& A) { // 実装を追加
+// 行列のノルムを計算
+double matrix_norm(const matrix_& A) {
+    double sum = 0.0;
     for (int i = 1; i <= A.row(); ++i) {
         for (int j = 1; j <= A.col(); ++j) {
-            os << A(i, j) << " ";
+            sum += A(i, j) * A(i, j);
         }
-        os << endl;
     }
-    return os;
+    return sqrt(sum);
 }
 
+// Wilkinsonシフトの計算
+double wilkinson_shift(const matrix_& H, int n) {
+    if (abs(H(n, n-1)) < 1e-14) return H(n, n);
+    
+    double a = H(n-1, n-1);
+    double b = H(n-1, n);
+    double c = H(n, n-1);
+    double d = H(n, n);
+    
+    double tr = a + d;
+    double det = a * d - b * c;
+    double disc = tr * tr - 4.0 * det;
+    
+    if (disc < 0) return tr / 2.0;
+    
+    double sqrt_disc = sqrt(disc);
+    double lambda1 = (tr + sqrt_disc) / 2.0;
+    double lambda2 = (tr - sqrt_disc) / 2.0;
+    
+    return abs(lambda1 - H(n,n)) < abs(lambda2 - H(n,n)) ? lambda1 : lambda2;
+}
 
-Matrix trans(const Matrix& A) {
-    Matrix w(A.col(), A.row());
-    for (int i = 1; i <= A.row(); ++i) {
-        for (int j = 1; j <= A.col(); ++j) w(j, i) = A(i, j);
+// 2x2ブロックの固有値計算
+pair<complex<double>, complex<double> > eigenvalues_2x2(const matrix_& H, int i) {
+    double a = H(i, i);
+    double b = H(i, i+1);
+    double c = H(i+1, i);
+    double d = H(i+1, i+1);
+    
+    double tr = a + d;
+    double det = a * d - b * c;
+    double disc = tr * tr - 4.0 * det;
+    
+    if (disc >= 0) {
+        double sqrt_disc = sqrt(disc);
+        double lambda1 = (tr + sqrt_disc) / 2.0;
+        double lambda2 = (tr - sqrt_disc) / 2.0;
+        return make_pair(complex<double>(lambda1, 0), complex<double>(lambda2, 0));
+    } else {
+        double real = tr / 2.0;
+        double imag = sqrt(-disc) / 2.0;
+        return make_pair(complex<double>(real, imag), complex<double>(real, -imag));
     }
-    return w;
 }
 
-Matrix tensor2(const Vector& x, const Vector& y) {
-    Matrix w(x.size(), y.size());
-    for (int i = 1; i <= x.size(); ++i)
-        for (int j = 1; j <= y.size(); ++j) w(i, j) = x(i) * y(j);
-    return w;
-}
-
-
-// Householder transformation (実装は以前と同じ)
-void householder(Matrix& A) {
+// QR分解
+void qr_decomposition(matrix_& A, matrix_& Q, matrix_& R) {
     int n = A.row();
-    Vector v(n);
-    Vector x(n);
-    Vector u(n);
-    Matrix P;
-    Matrix H = Matrix(n);
-    Matrix I = Matrix::identity(n);
-
-    for (int k = 1; k <= n - 2; ++k) {
-        for (int i = 1; i <= n; ++i) x(i) = 0.0;
-        for (int i = k + 1; i <= n; ++i) x(i) = A(i, k);
-
-        double norm_x = norm(x);
-        if (norm_x < 1e-15) continue;
-
-        if (x(k + 1) > 0) {
-            norm_x = -norm_x;
-        }
-        v = x;
-        v(k + 1) -= norm_x;
-
-        double norm_v_sq = v * v;
-        if (norm_v_sq < 1e-15) continue;
-
-        u = v / sqrt(norm_v_sq);
-        P = I - 2.0 * tensor2(u, u);
-
-        H = trans(P) * A * P;
-        for (int i = k; i <= n; ++i) {
-            for (int j = k; j <= n; ++j) {
-                A(i, j) = H(i, j);
-            }
-        }
-        for (int i = k + 1; i <= n; ++i) A(k, i) = A(i, k) = (i == k + 1) ? H(k, i) : 0.0;
-    }
-}
-
-// QR decomposition (実装は以前と同じ)
-void qr_decomposition(Matrix& A, Matrix& Q, Matrix& R) {
-    int n = A.row();
-    Q = Matrix(n);
-    R = Matrix(n);
-    Matrix tempA = A;
-    Matrix tempQ = Matrix::identity(n);
-
+    Q = create_identity(n);
+    R = A;
+    
     for (int j = 1; j <= n - 1; ++j) {
         for (int i = j + 1; i <= n; ++i) {
-            if (abs(tempA(i, j)) > 1e-15) {
-                double r = sqrt(tempA(j, j) * tempA(j, j) + tempA(i, j) * tempA(i, j));
-                double c = tempA(j, j) / r;
-                double s = -tempA(i, j) / r;
-
-                Matrix G = Matrix::identity(n);
-                G(j, j) = c;
-                G(i, i) = c;
-                G(j, i) = s;
-                G(i, j) = -s;
-
-                tempA = G * tempA;
-                tempQ = tempQ * trans(G);
+            if (abs(R(i, j)) < 1e-14) continue;
+            
+            double a = R(j, j);
+            double b = R(i, j);
+            double r = hypot(a, b);
+            if (r < 1e-14) continue;
+            
+            double c = a / r;
+            double s = -b / r;
+            
+            for (int k = j; k <= n; ++k) {
+                double temp = R(j, k);
+                R(j, k) = c * temp - s * R(i, k);
+                R(i, k) = s * temp + c * R(i, k);
+            }
+            
+            for (int k = 1; k <= n; ++k) {
+                double temp = Q(k, j);
+                Q(k, j) = c * temp - s * Q(k, i);
+                Q(k, i) = s * temp + c * Q(k, i);
             }
         }
     }
-    R = tempA;
-    Q = tempQ;
+    
+    for (int i = 1; i <= n; ++i) {
+        for (int j = 1; j < i; ++j) {
+            if (abs(R(i, j)) < 1e-13) R(i, j) = 0.0;
+        }
+    }
+    
+    Q = trans(Q);
 }
 
-// eigenvalues_qr 関数 (実装は以前と同じ)
-Vector eigenvalues_qr(Matrix A, int max_iterations = 1000, double tolerance = 1e-10) {
+// ダブルQR法による固有値計算
+vector<complex<double> > eigenvalues_double_qr(matrix_ A, int max_iterations = 200, double tolerance = 1e-12) {
     int n = A.row();
-    Vector eigenvalues(n);
-    Matrix Q, R;
-
-    for (int iter = 0; iter < max_iterations; ++iter) {
-        qr_decomposition(A, Q, R);
-        A = R * Q;
-
-        double off_diagonal_norm_sq = 0;
+    vector<complex<double> > eigenvalues;
+    matrix_ H = A;
+    
+    hess(H);
+    
+    double initial_norm = matrix_norm(H);
+    if (initial_norm < 1e-14) {
         for (int i = 1; i <= n; ++i) {
-            for (int j = 1; j <= n; ++j) {
-                if (i != j) {
-                    off_diagonal_norm_sq += A(i, j) * A(i, j);
-                }
-            }
+            eigenvalues.push_back(complex<double>(0.0, 0.0));
         }
-
-        if (sqrt(off_diagonal_norm_sq) < tolerance) {
+        return eigenvalues;
+    }
+    
+    tolerance *= initial_norm;
+    
+    int current_size = n;
+    int iteration_count = 0;
+    
+    while (current_size > 1 && iteration_count < max_iterations) {
+        if (current_size == 2) {
+            pair<complex<double>, complex<double> > vals = eigenvalues_2x2(H, 1);
+            eigenvalues.push_back(vals.first);
+            eigenvalues.push_back(vals.second);
             break;
         }
-    }
-
-    for (int i = 1; i <= n; ++i) {
-        eigenvalues(i) = A(i, i);
-    }
-    return eigenvalues;
-}
-
-
-// ダブルQR法による固有値計算関数 (簡略版 - シフトなし)
-Vector eigenvalues_double_qr(Matrix A, int max_iterations = 1000, double tolerance = 1e-10) {
-    int n = A.row();
-    Vector eigenvalues(n);
-    Matrix H = A;
-
-    householder(H); // ヘッセンベルグ行列への変換 (対称行列でも適用可能)
-
-    for (int iter = 0; iter < max_iterations; ++iter) {
-        Matrix Q, R;
-        qr_decomposition(H, Q, R); // QR分解
-        H = R * Q; // RQで更新 (ダブルシフトは省略)
-
-
-        double off_diagonal_norm_sq = 0;
-        for (int i = 1; i <= n; ++i) {
-            for (int j = 1; j <= n; ++j) {
-                if (i != j) {
-                    off_diagonal_norm_sq += H(i, j) * H(i, j);
-                }
+        
+        if (abs(H(current_size, current_size-1)) < tolerance) {
+            eigenvalues.push_back(complex<double>(H(current_size, current_size), 0));
+            current_size--;
+            continue;
+        }
+        
+        double shift = wilkinson_shift(H, current_size);
+        
+        matrix_ Q(current_size), R(current_size);
+        matrix_ H_shifted = H;
+        for (int i = 1; i <= current_size; ++i) {
+            H_shifted(i, i) -= shift;
+        }
+        
+        qr_decomposition(H_shifted, Q, R);
+        
+        matrix_ H_new = R * Q;
+        for (int i = 1; i <= current_size; ++i) {
+            H_new(i, i) += shift;
+        }
+        
+        for (int i = 1; i <= current_size; ++i) {
+            for (int j = 1; j <= current_size; ++j) {
+                H(i, j) = H_new(i, j);
+                if (abs(H(i, j)) < tolerance) H(i, j) = 0.0;
             }
         }
-
-
-        if (sqrt(off_diagonal_norm_sq) < tolerance) {
-            break; // 収束判定 (オフダイアゴナル要素が十分小さい)
-        }
+        
+        iteration_count++;
     }
-
-    // 固有値を抽出 (対角成分から - 複素固有値ペアの処理は省略)
-    for (int i = 1; i <= n; ++i) {
-        eigenvalues(i) = H(i, i); // 実部のみ (複素固有値は近似的な実部となる可能性あり)
+    
+    if (current_size == 1) {
+        eigenvalues.push_back(complex<double>(H(1, 1), 0));
     }
-
+    
     return eigenvalues;
 }
 
-
 int main() {
-    // stdsize(3); // stdsize は削除
+    cout << "テストケース1: 実数固有値を持つ対称行列" << endl;
+    matrix_ A(3);
+    A = 4.0, 1.0, 0.0,
+        1.0, 3.0, 1.0,
+        0.0, 1.0, 2.0;
 
-    Matrix A(3);
-    A = 1, 2, 3,
-        4, 5, 6,
-        7, 8, 9; // 非対称行列の例
+    cout << "行列 A:" << endl << A << endl;
+    vector<complex<double> > eigenvalues1 = eigenvalues_double_qr(A);
+    cout << "固有値:" << endl;
+    for (size_t i = 0; i < eigenvalues1.size(); ++i) {
+        const complex<double>& lambda = eigenvalues1[i];
+        if (abs(lambda.imag()) < 1e-10) {
+            cout << lambda.real() << endl;
+        } else {
+            cout << lambda.real() << " + " << lambda.imag() << "i" << endl;
+        }
+    }
 
-    cout << "元の行列 A:" << endl;
-    cout << A << endl;
+    cout << "\nテストケース2: 複素固有値を持つ非対称行列" << endl;
+    matrix_ B(3);
+    B = 1.0, -1.0, 2.0,
+        2.0, 3.0, -1.0,
+        1.0, 1.0, 2.0;
 
-    Vector eigenvalues = eigenvalues_double_qr(A); // ダブルQR法を使用 (簡易版)
-    cout << "固有値 (ダブルQR法 - 簡易版):" << endl;
-    cout << eigenvalues << endl;
+    cout << "行列 B:" << endl << B << endl;
+    vector<complex<double> > eigenvalues2 = eigenvalues_double_qr(B);
+    cout << "固有値:" << endl;
+    for (size_t i = 0; i < eigenvalues2.size(); ++i) {
+        const complex<double>& lambda = eigenvalues2[i];
+        if (abs(lambda.imag()) < 1e-10) {
+            cout << lambda.real() << endl;
+        } else {
+            cout << lambda.real() << " + " << lambda.imag() << "i" << endl;
+        }
+    }
 
-    // stop(); // stop() はコメントアウトまたは削除。exit(0) や return 0 で代替可能
+    cout << "\nテストケース3: 純虚数固有値を持つ行列" << endl;
+    matrix_ C(2);
+    C = 0.0, -1.0,
+        1.0, 0.0;
+
+    cout << "行列 C:" << endl << C << endl;
+    vector<complex<double> > eigenvalues3 = eigenvalues_double_qr(C);
+    cout << "固有値:" << endl;
+    for (size_t i = 0; i < eigenvalues3.size(); ++i) {
+        const complex<double>& lambda = eigenvalues3[i];
+        if (abs(lambda.imag()) < 1e-10) {
+            cout << lambda.real() << endl;
+        } else {
+            cout << lambda.real() << " + " << lambda.imag() << "i" << endl;
+        }
+    }
+
     return 0;
 }

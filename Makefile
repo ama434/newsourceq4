@@ -18,8 +18,14 @@ ROOT_SOURCES = $(ROOT_DIR)/AutoDiff_lib.cpp \
               $(ROOT_DIR)/pch.cpp \
               $(ROOT_DIR)/Vector_lib.cpp
 
+# Local source files
+LOCAL_SOURCES = eigenvalue_methods.cpp
+
+# All source files
+ALL_SOURCES = $(ROOT_SOURCES) $(LOCAL_SOURCES)
+
 # Object files will be created in the current directory
-OBJECTS = $(addprefix obj/, $(notdir $(ROOT_SOURCES:.cpp=.o)))
+OBJECTS = $(addprefix obj/, $(notdir $(ALL_SOURCES:.cpp=.o)))
 MAIN_OBJ = obj/$(notdir $(MAIN_SRC:.cpp=.o))
 
 # Create obj directory
@@ -39,18 +45,15 @@ $(TARGET): $(OBJECTS) $(MAIN_OBJ)
 obj/%.o: $(ROOT_DIR)/%.cpp
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
-# Compile main source file from either current directory or parent directory
+# Compile local source files
 obj/%.o: %.cpp
-	$(CXX) $(CXXFLAGS) -c $< -o $@
-
-obj/%.o: $(ROOT_DIR)/%.cpp
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 # Generate dependencies
 depend: .depend
-.depend: $(ROOT_SOURCES) $(MAIN_SRC)
+.depend: $(ALL_SOURCES) $(MAIN_SRC)
 	rm -f ./.depend
-	$(CXX) $(CXXFLAGS) -MM $(ROOT_SOURCES) $(MAIN_SRC) | sed 's|^|obj/|' > ./.depend
+	$(CXX) $(CXXFLAGS) -MM $(ALL_SOURCES) $(MAIN_SRC) | sed 's|^|obj/|' > ./.depend
 
 # Clean target
 clean:
