@@ -62,11 +62,16 @@ void jacobi_method(Matrix& A, Vector& eigenvals, Matrix& eigenvecs) {
 
 int main() {
     // テスト行列の定義
-    Matrix A(3,3);
-    A = 2, -1, 0,
-       -1,  2, -1,
-        0, -1,  2;
-    
+    Matrix A(7, 7);
+    A = -8, 2, 32, 3, -9, -2, 23,
+      0, 3, 52, -43, 57, -63, -2,
+      0, 0, -9, -5, 33, 45, -3,
+      0, 0, 0, -4, -3, 22, 6,
+      0, 0, 0, 0, -6, 8, -123, 
+      0, 0, 0, 0, 0, 6, 8, 
+      0, 0, 0, 0, 0, 0, -13;
+
+
     // 固有値・固有ベクトルを格納する変数
     Vector eigenvals;
     Matrix eigenvecs;

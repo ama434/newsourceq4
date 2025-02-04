@@ -5,6 +5,7 @@
 1. ルンゲ・クッタ法による微分方程式の解法
 2. ヤコビ法による固有値・固有ベクトルの計算
 3. べき乗法による最大固有値の計算
+4. ハウスホルダー法・ダブルQR法による固有値の計算
 
 > [!WARNING]
 > このソースコードおよび README は、macOS 上で Claude 3.5 Sonnet を用いて制作されたものです。そのため、**Windows での動作は保証されません**。
@@ -68,7 +69,8 @@ git clone https://github.com/ama434/newsourceq4.git
         ├── Makefile
         ├── rk-solver.cpp   # ルンゲ・クッタ法
         ├── jacobi-test.cpp # ヤコビ法
-        └── power-method.cpp # べき乗法
+        ├── power-method.cpp # べき乗法
+        └── dqr-test.cpp    # ハウスホルダー法・ダブルQR法
 ```
 
 ## 使用方法
@@ -117,6 +119,12 @@ make MAIN_SRC=power-method.cpp
 ./matrix
 ```
 
+### 4. ハウスホルダー法・ダブルQR法
+```bash
+make MAIN_SRC=dqr-test.cpp
+./matrix
+```
+
 ### 参照用の main.cpp の使用
 親ディレクトリの `main.cpp` を使用する場合：
 ```bash
@@ -134,6 +142,7 @@ make
 2. **固有値問題を解く場合**：
    - 対称行列の場合は `jacobi-test.cpp` を使用
    - 最大固有値のみ必要な場合は `power-method.cpp` を使用
+   - それ以外の場合は `dqr-test.cpp` を使用
 
 ## トラブルシューティング
 
