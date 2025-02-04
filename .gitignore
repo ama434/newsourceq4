@@ -1,0 +1,27 @@
+# Build artifacts
+matrix
+obj/
+*.o
+
+# macOS specific
+.DS_Store
+
+# Dependencies
+.depend
+
+# Code::Blocks IDE files
+*.layout
+*.depend
+
+# VS Code settings
+.vscode/
+
+# Executable outputs
+*.exe
+*.out
+
+# Generated data and plot files
+rk_data.txt
+rk_plot.gp
+*.png
+*.pdf
