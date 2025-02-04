@@ -4,10 +4,10 @@ using namespace std;
 // パラメータ設定用の名前空間
 namespace params {
     // 2元連立1階常微分方程式の係数
-    const double a11 = 0.0;     // dx1/dt = a11*x1 + a12*x2
-    const double a12 = 1.0;     
-    const double a21 = -400.0;  // dx2/dt = a21*x1 + a22*x2
-    const double a22 = -6.0;
+    const double a11 = 1.0;     // dx1/dt = a11*x1 + a12*x2
+    const double a12 = 2.0;     
+    const double a21 = 2.0;  // dx2/dt = a21*x1 + a22*x2
+    const double a22 = 1.0;
     
     // 計算条件
     const double t_end = 5.0;   // 終了時刻
