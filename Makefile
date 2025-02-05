@@ -18,11 +18,8 @@ ROOT_SOURCES = $(ROOT_DIR)/AutoDiff_lib.cpp \
               $(ROOT_DIR)/pch.cpp \
               $(ROOT_DIR)/Vector_lib.cpp
 
-# Local source files
-LOCAL_SOURCES = eigenvalue_methods.cpp
-
 # All source files
-ALL_SOURCES = $(ROOT_SOURCES) $(LOCAL_SOURCES)
+ALL_SOURCES = $(ROOT_SOURCES)
 
 # Object files will be created in the current directory
 OBJECTS = $(addprefix obj/, $(notdir $(ALL_SOURCES:.cpp=.o)))
